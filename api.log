@@ -1,0 +1,7 @@
+2025-10-09 18:28:48 | INFO | __main__:<module>:468 | 🚀 Iniciando servidor FastAPI...
+2025-10-09 18:30:15 | INFO | api:predict_price:167 | Fazendo previsão para ETHUSDT com modelo eth_price_predictor
+2025-10-09 18:30:15 | INFO | main:load_model:397 | Modelo carregado de: models/eth_price_predictor.pkl
+2025-10-09 18:30:15 | INFO | main:fetch_klines:91 | Buscando 100 velas de 30m para ETHUSDT
+2025-10-09 18:30:15 | INFO | main:fetch_klines:109 | Dados obtidos: 100 velas
+2025-10-09 18:30:15 | INFO | main:prepare_features:300 | Features preparadas: 50 amostras com 15 features
+2025-10-09 18:30:16 | INFO | api:predict_price:232 | Previsão realizada: 4345.62 -> 4356.09 (+0.24%)

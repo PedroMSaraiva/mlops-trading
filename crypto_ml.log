@@ -1,0 +1,68 @@
+2025-10-09 18:23:51,316 - INFO - Buscando dados de ETHUSDT...
+2025-10-09 18:23:51,316 - INFO - Buscando 100 velas de 30m para ETHUSDT
+2025-10-09 18:23:51,639 - INFO - Dados obtidos: 100 velas
+2025-10-09 18:23:51,639 - INFO - Calculando indicadores técnicos...
+2025-10-09 18:23:51,648 - INFO - Dados salvos em: data/eth_raw_data.csv
+2025-10-09 18:23:51,651 - INFO - Dados salvos em: data/eth_with_indicators.csv
+2025-10-09 18:23:51,651 - INFO - Preparando dados para machine learning...
+2025-10-09 18:23:51,653 - INFO - Features preparadas: 50 amostras com 15 features
+2025-10-09 18:23:51,653 - INFO - Iniciando treinamento do modelo...
+2025-10-09 18:23:51,758 - INFO - Modelo treinado. R² teste: -0.9924
+2025-10-09 18:23:51,758 - INFO - Métricas do modelo:
+2025-10-09 18:23:51,758 - INFO -   train_mse: 75.42021732499703
+2025-10-09 18:23:51,758 - INFO -   test_mse: 897.495930535061
+2025-10-09 18:23:51,758 - INFO -   train_mae: 6.31140500000065
+2025-10-09 18:23:51,758 - INFO -   test_mae: 24.214950000001316
+2025-10-09 18:23:51,758 - INFO -   train_r2: 0.985114108585326
+2025-10-09 18:23:51,758 - INFO -   test_r2: -0.9923954140898226
+2025-10-09 18:23:51,758 - INFO -   train_size: 40
+2025-10-09 18:23:51,758 - INFO -   test_size: 10
+2025-10-09 18:23:51,771 - INFO - Modelo salvo em: models/eth_price_predictor.pkl
+2025-10-09 18:23:51,785 - INFO - Previsão para próxima vela: 4355.63
+2025-10-09 18:23:51,785 - INFO - Último preço real: 4354.87
+2025-10-09 18:23:51,785 - INFO - Processo concluído!
+2025-10-09 18:25:21,219 - INFO - Buscando dados de ETHUSDT...
+2025-10-09 18:25:21,219 - INFO - Buscando 100 velas de 30m para ETHUSDT
+2025-10-09 18:25:21,566 - INFO - Dados obtidos: 100 velas
+2025-10-09 18:25:21,566 - INFO - Calculando indicadores técnicos...
+2025-10-09 18:25:21,574 - INFO - Dados salvos em: data/eth_raw_data.csv
+2025-10-09 18:25:21,577 - INFO - Dados salvos em: data/eth_with_indicators.csv
+2025-10-09 18:25:21,577 - INFO - Preparando dados para machine learning...
+2025-10-09 18:25:21,578 - INFO - Features preparadas: 50 amostras com 15 features
+2025-10-09 18:25:21,578 - INFO - Iniciando treinamento do modelo...
+2025-10-09 18:25:21,684 - INFO - Modelo treinado. R² teste: -1.1017
+2025-10-09 18:25:21,684 - INFO - Métricas do modelo:
+2025-10-09 18:25:21,684 - INFO -   train_mse: 75.42021732499856
+2025-10-09 18:25:21,684 - INFO -   test_mse: 899.5837181350942
+2025-10-09 18:25:21,684 - INFO -   train_mae: 6.311405000000787
+2025-10-09 18:25:21,685 - INFO -   test_mae: 24.60195000000176
+2025-10-09 18:25:21,685 - INFO -   train_r2: 0.9851141085853258
+2025-10-09 18:25:21,685 - INFO -   test_r2: -1.1017187832154525
+2025-10-09 18:25:21,685 - INFO -   train_size: 40
+2025-10-09 18:25:21,685 - INFO -   test_size: 10
+2025-10-09 18:25:21,696 - INFO - Modelo salvo em: models/eth_price_predictor.pkl
+2025-10-09 18:25:21,710 - INFO - Previsão para próxima vela: 4355.63
+2025-10-09 18:25:21,710 - INFO - Último preço real: 4351.00
+2025-10-09 18:25:21,710 - INFO - Processo concluído!
+2025-10-09 18:27:56 | INFO | __main__:<module>:1 | Teste do loguru funcionando!
+2025-10-09 18:28:05 | INFO | __main__:<module>:1 | Teste do loguru no predict.py funcionando!
+2025-10-09 18:30:46 | INFO | main:load_model:397 | Modelo carregado de: models/eth_price_predictor.pkl
+2025-10-09 18:30:46 | INFO | predict:analyze_prediction_accuracy:122 | Analisando acurácia para 7 dias...
+2025-10-09 18:30:46 | INFO | main:fetch_klines:91 | Buscando 500 velas de 30m para ETHUSDT
+2025-10-09 18:30:46 | INFO | main:fetch_klines:109 | Dados obtidos: 500 velas
+2025-10-09 18:30:47 | INFO | main:prepare_features:300 | Features preparadas: 450 amostras com 15 features
+2025-10-09 18:32:29 | INFO | api:_train_model_background:401 | Iniciando treinamento em background para ETHUSDT
+2025-10-09 18:32:29 | INFO | main:fetch_klines:91 | Buscando 500 velas de 30m para ETHUSDT
+2025-10-09 18:32:30 | INFO | main:fetch_klines:109 | Dados obtidos: 500 velas
+2025-10-09 18:32:30 | INFO | main:prepare_features:300 | Features preparadas: 450 amostras com 15 features
+2025-10-09 18:32:30 | INFO | main:train:315 | Iniciando treinamento do modelo...
+2025-10-09 18:32:30 | INFO | main:train:352 | Modelo treinado. R² teste: 0.7461
+2025-10-09 18:32:30 | INFO | main:save_model:379 | Modelo salvo em: models/ethusdt_price_predictor.pkl
+2025-10-09 18:32:30 | INFO | api:_train_model_background:438 | Treinamento concluído para ETHUSDT. R²: 0.7461345262095975
+2025-10-09 18:33:58 | INFO | main:load_model:397 | Modelo carregado de: models/eth_price_predictor.pkl
+2025-10-09 18:34:13 | INFO | api:predict_price:167 | Fazendo previsão para ETHUSDT com modelo eth_price_predictor
+2025-10-09 18:34:13 | INFO | main:load_model:397 | Modelo carregado de: models/eth_price_predictor.pkl
+2025-10-09 18:34:13 | INFO | main:fetch_klines:91 | Buscando 100 velas de 30m para ETHUSDT
+2025-10-09 18:34:13 | INFO | main:fetch_klines:109 | Dados obtidos: 100 velas
+2025-10-09 18:34:13 | INFO | main:prepare_features:300 | Features preparadas: 50 amostras com 15 features
+2025-10-09 18:34:13 | INFO | api:predict_price:232 | Previsão realizada: 4347.19 -> 4356.09 (+0.20%)
