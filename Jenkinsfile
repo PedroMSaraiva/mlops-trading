@@ -1,6 +1,12 @@
 pipeline {
-    agent any
-    
+    agent {
+        kubernetes {
+            label 'jenkins-agent'
+            defaultContainer 'jenkins-controller'
+            yamlFile 'k8s/pod-template.yaml'
+        }
+    }
+
     environment {
         PROJECT_ID = 'road-for-terraform'
         REGION = 'us-east1'
