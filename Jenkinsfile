@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent any  // 🔥 SIMPLES: Roda tudo no controller
 
     environment {
         PROJECT_ID = 'road-for-terraform'
@@ -9,11 +9,9 @@ pipeline {
         CLUSTER_NAME = 'dev-instance'
         MODEL_PATH_1 = 'models/eth_price_predictor.pkl'
         MODEL_PATH_2 = 'models/ethusdt_price_predictor.pkl'
-        GCP_SA = credentials('gcp-service-account')
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -23,10 +21,20 @@ pipeline {
         stage('Configurar GCP') {
             steps {
                 sh '''
-                echo "$GCP_SA" > ${WORKSPACE}/gcp-key.json
-                gcloud auth activate-service-account --key-file=${WORKSPACE}/gcp-key.json
+                # Com Workload Identity não precisa de auth!
                 gcloud config set project $PROJECT_ID
                 gcloud auth configure-docker $REGION-docker.pkg.dev -q
+                '''
+            }
+        }
+
+        stage('Instalar Dependências Python') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install -e .
                 '''
             }
         }
@@ -34,9 +42,7 @@ pipeline {
         stage('Pré-processamento dos Dados') {
             steps {
                 sh '''
-                python3 -m venv venv
-                source venv/bin/activate
-                pip install -r requirements.txt
+                . venv/bin/activate
                 python src/preprocess_eth.py
                 python src/preprocess_ethusdt.py
                 '''
@@ -46,7 +52,7 @@ pipeline {
         stage('Treinamento dos Modelos') {
             steps {
                 sh '''
-                source venv/bin/activate
+                . venv/bin/activate
                 python src/train_eth.py --output $MODEL_PATH_1
                 python src/train_ethusdt.py --output $MODEL_PATH_2
                 '''
@@ -56,7 +62,7 @@ pipeline {
         stage('Avaliação dos Modelos') {
             steps {
                 sh '''
-                source venv/bin/activate
+                . venv/bin/activate
                 python src/evaluate.py --model $MODEL_PATH_1 --threshold 0.8
                 python src/evaluate.py --model $MODEL_PATH_2 --threshold 0.8
                 '''
@@ -72,7 +78,7 @@ pipeline {
             }
         }
 
-        stage('Build e Push da Imagem de Inferência') {
+        stage('Build e Push da Imagem') {
             steps {
                 sh '''
                 docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER .
