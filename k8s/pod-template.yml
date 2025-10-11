@@ -4,17 +4,17 @@ metadata:
   labels:
     jenkins: agent
 spec:
-  serviceAccountName: jenkins  
+  serviceAccountName: jenkins
   containers:
   - name: jnlp
     image: jenkins/inbound-agent:latest
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "500m"
+        memory: "128Mi"
+        cpu: "100m"
       limits:
-        memory: "1Gi"
-        cpu: "1000m"
+        memory: "256Mi"
+        cpu: "200m"
   
   - name: gcp-tools
     image: google/cloud-sdk:alpine
@@ -23,8 +23,21 @@ spec:
     tty: true
     resources:
       requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
         memory: "256Mi"
-        cpu: "250m"
+        cpu: "200m"
+  
+  - name: python
+    image: python:3.9-slim
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
       limits:
         memory: "512Mi"
         cpu: "500m"
@@ -39,11 +52,11 @@ spec:
       mountPath: /var/run/docker.sock
     resources:
       requests:
-        memory: "256Mi"
-        cpu: "250m"
+        memory: "128Mi"
+        cpu: "100m"
       limits:
-        memory: "512Mi"
-        cpu: "500m"
+        memory: "256Mi"
+        cpu: "200m"
   
   volumes:
   - name: docker-sock
