@@ -6,11 +6,8 @@ metadata:
 spec:
   serviceAccountName: jenkins  
   containers:
-  - name: jenkins-controller
+  - name: jnlp
     image: jenkins/inbound-agent:latest
-    command:
-    - cat
-    tty: true
     resources:
       requests:
         memory: "512Mi"

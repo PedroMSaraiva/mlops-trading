@@ -2,8 +2,8 @@ pipeline {
     agent {
         kubernetes {
             label 'jenkins-agent'
-            defaultContainer 'jenkins-controller'
-            yamlFile 'k8s/pod-template.yaml'
+            defaultContainer 'jnlp'
+            yamlFile 'k8s/pod-template.ml'
         }
     }
 
@@ -114,7 +114,14 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            script {
+                // Limpar workspace de forma segura com Kubernetes
+                try {
+                    sh 'rm -rf *'
+                } catch (Exception e) {
+                    echo "Erro ao limpar workspace: ${e.message}"
+                }
+            }
         }
     }
 }
