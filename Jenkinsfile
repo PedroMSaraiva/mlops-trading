@@ -21,12 +21,12 @@ pipeline {
         stage('Install gcloud') {
       steps {
         sh '''
-          apt-get update && apt-get install -y curl apt-transport-https ca-certificates gnupg
+          sudo apt-get update && apt-get install -y curl apt-transport-https ca-certificates gnupg
           echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
-            | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+            | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
           curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-            | gpg --dearmor | tee /usr/share/keyrings/cloud.google.gpg > /dev/null
-          apt-get update && apt-get install -y google-cloud-sdk
+            | gpg --dearmor | sudo tee /usr/share/keyrings/cloud.google.gpg > /dev/null
+          sudo apt-get update && sudo apt-get install -y google-cloud-sdk
         '''
       }
     }
@@ -44,7 +44,7 @@ pipeline {
         stage('Instalar Dependências Python') {
             steps {
                 sh '''
-                python3 -m venv venv
+                sudo python3 -m venv venv
                 . venv/bin/activate
                 pip install --upgrade pip
                 pip install -e .
