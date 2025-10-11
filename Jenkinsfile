@@ -1,5 +1,11 @@
 pipeline {
-    agent any  // 🔥 SIMPLES: Roda tudo no controller
+    agent {
+        kubernetes {
+            label 'jenkins-agent'
+            defaultContainer 'jenkins-controller'
+            yamlFile 'path/to/pod-template.yaml'  // seu playbook Helm + sidecar
+        }
+    }
 
     environment {
         PROJECT_ID = 'road-for-terraform'
@@ -18,33 +24,22 @@ pipeline {
             }
         }
 
-        stage('Install gcloud') {
-      steps {
-        sh '''
-          sudo apt-get update && apt-get install -y curl apt-transport-https ca-certificates gnupg
-          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
-            | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-            | gpg --dearmor | sudo tee /usr/share/keyrings/cloud.google.gpg > /dev/null
-          sudo apt-get update && sudo apt-get install -y google-cloud-sdk
-        '''
-      }
-    }
-
         stage('Configurar GCP') {
             steps {
-                sh '''
-                # Com Workload Identity não precisa de auth!
-                gcloud config set project $PROJECT_ID
-                gcloud auth configure-docker $REGION-docker.pkg.dev -q
-                '''
+                container('gcp-tools') {
+                    sh '''
+                    # Com Workload Identity não precisa de auth!
+                    gcloud config set project $PROJECT_ID
+                    gcloud auth configure-docker $REGION-docker.pkg.dev -q
+                    '''
+                }
             }
         }
 
         stage('Instalar Dependências Python') {
             steps {
                 sh '''
-                sudo python3 -m venv venv
+                python3 -m venv venv
                 . venv/bin/activate
                 pip install --upgrade pip
                 pip install -e .
@@ -84,10 +79,12 @@ pipeline {
 
         stage('Versionamento dos Modelos') {
             steps {
-                sh '''
-                gsutil cp $MODEL_PATH_1 gs://$PROJECT_ID-model-registry/eth-model-$(date +%Y%m%d%H%M).pkl
-                gsutil cp $MODEL_PATH_2 gs://$PROJECT_ID-model-registry/ethusdt-model-$(date +%Y%m%d%H%M).pkl
-                '''
+                container('gcp-tools') {
+                    sh '''
+                    gsutil cp $MODEL_PATH_1 gs://$PROJECT_ID-model-registry/eth-model-$(date +%Y%m%d%H%M).pkl
+                    gsutil cp $MODEL_PATH_2 gs://$PROJECT_ID-model-registry/ethusdt-model-$(date +%Y%m%d%H%M).pkl
+                    '''
+                }
             }
         }
 
@@ -102,13 +99,15 @@ pipeline {
 
         stage('Deploy no GKE') {
             steps {
-                sh '''
-                gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
-                kubectl set image deployment/ml-inference \
-                  ml-inference=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
-                  -n ml-inference
-                kubectl rollout status deployment/ml-inference -n ml-inference
-                '''
+                container('gcp-tools') {
+                    sh '''
+                    gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
+                    kubectl set image deployment/ml-inference \
+                      ml-inference=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
+                      -n ml-inference
+                    kubectl rollout status deployment/ml-inference -n ml-inference
+                    '''
+                }
             }
         }
     }
