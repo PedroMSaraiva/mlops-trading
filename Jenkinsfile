@@ -1,12 +1,6 @@
 pipeline {
-    agent {
-        kubernetes {
-            label 'jenkins-agent'
-            defaultContainer 'jenkins-controller'
-            yamlFile 'path/to/pod-template.yaml'  // seu playbook Helm + sidecar
-        }
-    }
-
+    agent any
+    
     environment {
         PROJECT_ID = 'road-for-terraform'
         REGION = 'us-east1'
