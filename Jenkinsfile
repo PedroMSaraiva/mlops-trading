@@ -18,6 +18,19 @@ pipeline {
             }
         }
 
+        stage('Install gcloud') {
+      steps {
+        sh '''
+          apt-get update && apt-get install -y curl apt-transport-https ca-certificates gnupg
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
+            | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+            | gpg --dearmor | tee /usr/share/keyrings/cloud.google.gpg > /dev/null
+          apt-get update && apt-get install -y google-cloud-sdk
+        '''
+      }
+    }
+
         stage('Configurar GCP') {
             steps {
                 sh '''
