@@ -41,24 +41,3 @@ spec:
       limits:
         memory: "512Mi"
         cpu: "500m"
-  
-  - name: docker
-    image: docker:latest
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
-        memory: "256Mi"
-        cpu: "200m"
-  
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock

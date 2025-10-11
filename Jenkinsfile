@@ -90,10 +90,14 @@ pipeline {
 
         stage('Build e Push da Imagem') {
             steps {
-                sh '''
-                docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER .
-                docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER
-                '''
+                container('gcp-tools') {
+                    sh '''
+                    gcloud builds submit \
+                      --tag=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
+                      --project=$PROJECT_ID \
+                      .
+                    '''
+                }
             }
         }
 
