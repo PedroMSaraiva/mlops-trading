@@ -125,24 +125,36 @@ pipeline {
             steps {
                 container('gcp-tools') {
                     sh '''
+                    # Verificar se kubectl está disponível
                     if ! command -v kubectl &> /dev/null; then
-                        echo "Instalando kubectl..."
+                        echo "❌ kubectl não encontrado. Instalando..."
                         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                         chmod +x kubectl
-                        mv kubectl /usr/local/bin/
+                        sudo mv kubectl /usr/local/bin/ 2>/dev/null || mv kubectl /usr/bin/
+                    else
+                        echo " kubectl já instalado: $(which kubectl)"
                     fi
                     
+                    # Verificar se gke-gcloud-auth-plugin está disponível
                     if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
-                        echo "Instalando gke-gcloud-auth-plugin..."
-                        curl -LO "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz"
-                        tar -xzf google-cloud-cli-linux-x86_64.tar.gz
-                        ./google-cloud-sdk/install.sh --quiet --path-update=false --install-python=false
-                        cp google-cloud-sdk/bin/gke-gcloud-auth-plugin /usr/local/bin/
+                        echo " gke-gcloud-auth-plugin não encontrado. Instalando..."
+                        PLUGIN_URL="https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/gke-gcloud-auth-plugin"
+                        curl -LO "$PLUGIN_URL" 2>/dev/null || echo "URL alternativo..."
+                        
+                        # Tentar instalar via apt se disponível
+                        if command -v apt-get &> /dev/null; then
+                            apt-get update && apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+                        else
+                            echo "  Não foi possível instalar gke-gcloud-auth-plugin automaticamente"
+                        fi
+                    else
+                        echo " gke-gcloud-auth-plugin já instalado: $(which gke-gcloud-auth-plugin)"
                     fi
                     
-                    echo "Verificando instalações..."
-                    kubectl version --client
-                    gcloud version
+                    echo ""
+                    echo " Verificando instalações..."
+                    kubectl version --client --short 2>/dev/null || kubectl version --client
+                    gcloud version | head -n 1
                     
                     export USE_GKE_GCLOUD_AUTH_PLUGIN=True
                     
