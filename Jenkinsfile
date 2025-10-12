@@ -80,6 +80,7 @@ pipeline {
                     gcloud builds submit \
                       --tag=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
                       --project=$PROJECT_ID \
+                      --no-stream \
                       .
                     '''
                 }
