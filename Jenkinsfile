@@ -10,7 +10,7 @@ pipeline {
     environment {
         PROJECT_ID = 'road-for-terraform'
         REGION = 'us-east1'
-        REPO_NAME = 'mlops-trading'
+        REPO_NAME = 'mlops-repo'
         IMAGE_NAME = 'ml-inference'
         CLUSTER_NAME = 'dev-instance'
         MODEL_PATH_1 = 'models/eth_price_predictor.pkl'
