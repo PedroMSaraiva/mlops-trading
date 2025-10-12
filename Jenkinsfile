@@ -77,11 +77,44 @@ pipeline {
             steps {
                 container('gcp-tools') {
                     sh '''
+                    set +e
                     gcloud builds submit \
                       --tag=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
                       --project=$PROJECT_ID \
-                      --no-stream \
-                      .
+                      . 2>&1 | tee build_output.txt
+                    
+                    BUILD_ID=$(grep -oP 'ID: \K[a-z0-9-]+' build_output.txt || grep -oP 'id: \K[a-z0-9-]+' build_output.txt)
+                    
+                    if [ -z "$BUILD_ID" ]; then
+                      echo "Não foi possível obter o Build ID, mas verificando imagem..."
+                      sleep 30
+                      if gcloud artifacts docker images describe $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER --project=$PROJECT_ID 2>/dev/null; then
+                        echo "Imagem criada com sucesso!"
+                        exit 0
+                      else
+                        echo "Falha ao criar imagem"
+                        exit 1
+                      fi
+                    fi
+                    
+                    echo "Verificando status do build: $BUILD_ID"
+                    STATUS=$(gcloud builds describe $BUILD_ID --project=$PROJECT_ID --format="value(status)" 2>/dev/null || echo "UNKNOWN")
+                    
+                    while [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "QUEUED" ]; do
+                      echo "Build ainda em andamento... aguardando 10s"
+                      sleep 10
+                      STATUS=$(gcloud builds describe $BUILD_ID --project=$PROJECT_ID --format="value(status)")
+                    done
+                    
+                    echo "Build Status: $STATUS"
+                    
+                    if [ "$STATUS" = "SUCCESS" ]; then
+                      echo "Build concluído com sucesso!"
+                      exit 0
+                    else
+                      echo "Build falhou com status: $STATUS"
+                      exit 1
+                    fi
                     '''
                 }
             }
