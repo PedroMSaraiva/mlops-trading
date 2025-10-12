@@ -127,13 +127,22 @@ pipeline {
                     sh '''
                     if ! command -v kubectl &> /dev/null; then
                         echo "Instalando kubectl..."
-                        gcloud components install kubectl --quiet
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        mv kubectl /usr/local/bin/
                     fi
                     
                     if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
                         echo "Instalando gke-gcloud-auth-plugin..."
-                        gcloud components install gke-gcloud-auth-plugin --quiet
+                        curl -LO "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz"
+                        tar -xzf google-cloud-cli-linux-x86_64.tar.gz
+                        ./google-cloud-sdk/install.sh --quiet --path-update=false --install-python=false
+                        cp google-cloud-sdk/bin/gke-gcloud-auth-plugin /usr/local/bin/
                     fi
+                    
+                    echo "Verificando instalações..."
+                    kubectl version --client
+                    gcloud version
                     
                     export USE_GKE_GCLOUD_AUTH_PLUGIN=True
                     
