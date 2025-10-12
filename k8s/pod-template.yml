@@ -17,17 +17,17 @@ spec:
         cpu: "200m"
   
   - name: gcp-tools
-    image: google/cloud-sdk:alpine
+    image: google/cloud-sdk:latest
     command:
     - cat
     tty: true
     resources:
       requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
         memory: "256Mi"
         cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
   
   - name: python
     image: python:3.13-slim

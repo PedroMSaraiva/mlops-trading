@@ -125,6 +125,18 @@ pipeline {
             steps {
                 container('gcp-tools') {
                     sh '''
+                    if ! command -v kubectl &> /dev/null; then
+                        echo "Instalando kubectl..."
+                        gcloud components install kubectl --quiet
+                    fi
+                    
+                    if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
+                        echo "Instalando gke-gcloud-auth-plugin..."
+                        gcloud components install gke-gcloud-auth-plugin --quiet
+                    fi
+                    
+                    export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+                    
                     gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION --project $PROJECT_ID
                     
                     kubectl apply -f k8s/python-namespace.yml
@@ -137,7 +149,9 @@ pipeline {
                     
                     kubectl rollout status deployment/ml-inference -n ml-inference --timeout=5m
                     
+                    echo "=== Pods ==="
                     kubectl get pods -n ml-inference
+                    echo "=== Services ==="
                     kubectl get svc -n ml-inference
                     '''
                 }
