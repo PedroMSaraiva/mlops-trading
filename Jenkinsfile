@@ -83,7 +83,8 @@ pipeline {
                       --project=$PROJECT_ID \
                       . 2>&1 | tee build_output.txt
                     
-                    BUILD_ID=$(grep -oP 'ID: \K[a-z0-9-]+' build_output.txt || grep -oP 'id: \K[a-z0-9-]+' build_output.txt)
+                    # Extrair Build ID usando sed
+                    BUILD_ID=$(grep -i "ID:" build_output.txt | head -1 | sed 's/.*ID: *//i' | awk '{print $1}')
                     
                     if [ -z "$BUILD_ID" ]; then
                       echo "Não foi possível obter o Build ID, mas verificando imagem..."
