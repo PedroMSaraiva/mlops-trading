@@ -7,6 +7,22 @@ Sistema completo para análise de dados de criptomoedas e previsão de preços u
 - Python 3.13+
 - uv (recomendado) ou pip
 
+## 🔄 Modo Offline (CI/CD)
+
+O sistema detecta automaticamente quando está rodando em ambiente CI/CD (Jenkins, GitHub Actions, etc.) e **utiliza modo offline**, carregando dados históricos salvos na pasta `data/` ao invés de conectar à API da Binance.
+
+**Como funciona:**
+- ✅ Detecta variáveis de ambiente `CI=true` ou `JENKINS_HOME`
+- ✅ Carrega dados de `data/eth_with_indicators.csv` ou `data/eth_raw_data.csv`
+- ✅ Treina o modelo com dados históricos
+- ✅ Não requer acesso à API da Binance durante o pipeline
+
+**Para forçar modo offline manualmente:**
+```bash
+export CI=true
+python main.py
+```
+
 ## ⚡ Iniciação Rápida
 
 ### 1. Instalar dependências
@@ -21,8 +37,11 @@ uv sync
 
 ### 2. Executar análise inicial
 ```bash
-# Treinar modelo inicial
+# Treinar modelo inicial (conecta à API Binance em dev)
 uv run main.py
+
+# Ou em modo offline
+CI=true uv run main.py
 ```
 
 ### 3. Subir API FastAPI

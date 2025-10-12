@@ -54,7 +54,10 @@ pipeline {
                 container('python') {
                     sh '''
                     . venv/bin/activate
+                    # Define variável de ambiente para modo CI/CD
+                    export CI=true
                     # Executa o script principal que faz o pré-processamento e treinamento
+                    # Em modo CI, usará dados históricos salvos em data/
                     python main.py
                     '''
                 }

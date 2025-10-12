@@ -48,6 +48,7 @@ class Config:
     default_symbol: str = "ETHUSDT"
     default_interval: str = Client.KLINE_INTERVAL_30MINUTE
     default_limit: int = 500
+    offline_mode: bool = False  # Modo offline para CI/CD
 
 
 class CryptoDataManager:
@@ -55,7 +56,17 @@ class CryptoDataManager:
 
     def __init__(self, config: Config):
         self.config = config
-        self.client = Client(config.binance_api_key, config.binance_api_secret)
+        self.client = None
+        if not config.offline_mode:
+            try:
+                self.client = Client(config.binance_api_key, config.binance_api_secret)
+                logger.info("Cliente Binance inicializado com sucesso")
+            except Exception as e:
+                logger.warning(f"Não foi possível conectar à API Binance: {e}")
+                logger.info("Usando modo offline - dados históricos serão carregados")
+                self.config.offline_mode = True
+        else:
+            logger.info("Modo offline ativado - usando dados históricos")
         self._ensure_directories()
 
     def _ensure_directories(self):
@@ -88,6 +99,11 @@ class CryptoDataManager:
         interval = interval or self.config.default_interval
         limit = limit or self.config.default_limit
 
+        # Se em modo offline, tenta carregar dados salvos
+        if self.config.offline_mode or self.client is None:
+            logger.info("Modo offline: tentando carregar dados históricos salvos...")
+            return self.load_offline_data(symbol)
+
         logger.info(f"Buscando {limit} velas de {interval} para {symbol}")
 
         try:
@@ -111,7 +127,42 @@ class CryptoDataManager:
 
         except Exception as e:
             logger.error(f"Erro ao buscar dados: {e}")
-            return pd.DataFrame()
+            logger.info("Tentando carregar dados offline como fallback...")
+            return self.load_offline_data(symbol)
+    
+    def load_offline_data(self, symbol: str = None) -> pd.DataFrame:
+        """
+        Carrega dados históricos salvos localmente
+        
+        Args:
+            symbol: Par de criptomoedas (ex: 'ETHUSDT')
+            
+        Returns:
+            DataFrame com dados históricos ou DataFrame vazio
+        """
+        symbol = symbol or self.config.default_symbol
+        
+        # Tenta carregar dados com indicadores primeiro
+        indicators_file = os.path.join(self.config.data_dir, f"{symbol.lower()}_with_indicators.csv")
+        raw_file = os.path.join(self.config.data_dir, f"{symbol.lower()}_raw_data.csv")
+        
+        # Arquivos genéricos como fallback
+        generic_indicators = os.path.join(self.config.data_dir, "eth_with_indicators.csv")
+        generic_raw = os.path.join(self.config.data_dir, "eth_raw_data.csv")
+        
+        for filepath in [indicators_file, raw_file, generic_indicators, generic_raw]:
+            if os.path.exists(filepath):
+                try:
+                    logger.info(f"Carregando dados de: {filepath}")
+                    df = pd.read_csv(filepath)
+                    logger.info(f"Dados carregados com sucesso: {len(df)} linhas")
+                    return df
+                except Exception as e:
+                    logger.warning(f"Erro ao carregar {filepath}: {e}")
+        
+        logger.error(f"Nenhum dado histórico encontrado para {symbol}")
+        logger.info(f"Arquivos procurados: {indicators_file}, {raw_file}")
+        return pd.DataFrame()
 
     def _process_klines_data(self, klines: list) -> pd.DataFrame:
         """Processa dados brutos de klines"""
@@ -404,8 +455,16 @@ class CryptoMLModel:
 
 def main():
     """Função principal"""
+    # Detectar se está rodando em ambiente CI/CD
+    is_ci = os.getenv('CI') == 'true' or os.getenv('JENKINS_HOME') is not None
+    
     # Configuração
-    config = Config()
+    config = Config(offline_mode=is_ci)
+    
+    if is_ci:
+        logger.info("🔧 Ambiente CI/CD detectado - usando modo offline")
+    else:
+        logger.info("💻 Ambiente de desenvolvimento - tentando conectar à API Binance")
 
     # Inicializar componentes
     data_manager = CryptoDataManager(config)
@@ -427,9 +486,10 @@ def main():
     logger.info("Calculando indicadores técnicos...")
     df_with_indicators = TechnicalIndicators.add_all_indicators(df)
 
-    # Salvar dados brutos
-    data_manager.save_data(df, "eth_raw_data", "csv")
-    data_manager.save_data(df_with_indicators, "eth_with_indicators", "csv")
+    # Salvar dados brutos (apenas se não estiver em modo offline)
+    if not config.offline_mode:
+        data_manager.save_data(df, "eth_raw_data", "csv")
+        data_manager.save_data(df_with_indicators, "eth_with_indicators", "csv")
 
     # Preparar dados para ML
     logger.info("Preparando dados para machine learning...")
