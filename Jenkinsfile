@@ -38,42 +38,50 @@ pipeline {
 
         stage('Instalar Dependências Python') {
             steps {
-                sh '''
-                python3 -m venv venv
-                . venv/bin/activate
-                pip install --upgrade pip
-                pip install -e .
-                '''
+                container('python') {
+                    sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -e .
+                    '''
+                }
             }
         }
 
         stage('Pré-processamento dos Dados') {
             steps {
-                sh '''
-                . venv/bin/activate
-                python src/preprocess_eth.py
-                python src/preprocess_ethusdt.py
-                '''
+                container('python') {
+                    sh '''
+                    . venv/bin/activate
+                    python src/preprocess_eth.py
+                    python src/preprocess_ethusdt.py
+                    '''
+                }
             }
         }
 
         stage('Treinamento dos Modelos') {
             steps {
-                sh '''
-                . venv/bin/activate
-                python src/train_eth.py --output $MODEL_PATH_1
-                python src/train_ethusdt.py --output $MODEL_PATH_2
-                '''
+                container('python') {
+                    sh '''
+                    . venv/bin/activate
+                    python src/train_eth.py --output $MODEL_PATH_1
+                    python src/train_ethusdt.py --output $MODEL_PATH_2
+                    '''
+                }
             }
         }
 
         stage('Avaliação dos Modelos') {
             steps {
-                sh '''
-                . venv/bin/activate
-                python src/evaluate.py --model $MODEL_PATH_1 --threshold 0.8
-                python src/evaluate.py --model $MODEL_PATH_2 --threshold 0.8
-                '''
+                container('python') {
+                    sh '''
+                    . venv/bin/activate
+                    python src/evaluate.py --model $MODEL_PATH_1 --threshold 0.8
+                    python src/evaluate.py --model $MODEL_PATH_2 --threshold 0.8
+                    '''
+                }
             }
         }
 
