@@ -17,15 +17,14 @@ COPY README.md /app/
 
 RUN python -m pip install --upgrade pip setuptools wheel
 
-
-RUN python - <<'PY'
-import tomllib, subprocess, sys
-with open('pyproject.toml','rb') as f:
-	data = tomllib.load(f)
-deps = data.get('project',{}).get('dependencies',[])
-reqs = [d.split(';')[0].strip() for d in deps]
-subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + reqs)
-PY
+# Instalar dependências do pyproject.toml
+RUN python -c "import tomllib, subprocess, sys; \
+    f = open('pyproject.toml', 'rb'); \
+    data = tomllib.load(f); \
+    f.close(); \
+    deps = data.get('project', {}).get('dependencies', []); \
+    reqs = [d.split(';')[0].strip() for d in deps]; \
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + reqs)"
 
 COPY . /app
 
