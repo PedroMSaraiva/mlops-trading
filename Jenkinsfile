@@ -83,7 +83,6 @@ pipeline {
                       --project=$PROJECT_ID \
                       . 2>&1 | tee build_output.txt
                     
-                    # Extrair Build ID usando sed
                     BUILD_ID=$(grep -i "ID:" build_output.txt | head -1 | sed 's/.*ID: *//i' | awk '{print $1}')
                     
                     if [ -z "$BUILD_ID" ]; then
@@ -167,6 +166,7 @@ pipeline {
                     
                     kubectl apply -f k8s/python-deployment.yml
                     kubectl apply -f k8s/python-service.yml
+                    kubectl apply -f k8s/python-service-monitor.yml
                     
                     kubectl rollout status deployment/ml-inference -n ml-inference --timeout=5m
                     
@@ -174,6 +174,8 @@ pipeline {
                     kubectl get pods -n ml-inference
                     echo "=== Services ==="
                     kubectl get svc -n ml-inference
+                    echo "=== ServiceMonitor ==="
+                    kubectl get servicemonitor -n ml-inference
                     '''
                 }
             }

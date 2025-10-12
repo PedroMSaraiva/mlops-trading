@@ -174,8 +174,9 @@ async def predict_price(
 
         binance_interval = interval_map.get(interval.lower(), "30m")
 
-        # Carregar modelo
-        if not ml_model.load_model(model_name):
+        # Carregar modelo (remover .pkl se já estiver no nome)
+        model_name_clean = model_name.replace('.pkl', '')
+        if not ml_model.load_model(model_name_clean):
             raise HTTPException(status_code=404, detail=f"Modelo {model_name} não encontrado")
 
         # Buscar dados recentes
