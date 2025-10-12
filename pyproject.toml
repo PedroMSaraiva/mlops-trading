@@ -16,3 +16,9 @@ dependencies = [
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
 ]
+
+[tool.setuptools]
+py-modules = ["main", "predict", "api"]
+
+[tool.setuptools.packages.find]
+exclude = ["k8s*", "data*", "models*", "*.egg-info"]

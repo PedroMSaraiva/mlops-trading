@@ -49,37 +49,13 @@ pipeline {
             }
         }
 
-        stage('Pré-processamento dos Dados') {
+        stage('Preparar e Treinar Modelos') {
             steps {
                 container('python') {
                     sh '''
                     . venv/bin/activate
-                    python src/preprocess_eth.py
-                    python src/preprocess_ethusdt.py
-                    '''
-                }
-            }
-        }
-
-        stage('Treinamento dos Modelos') {
-            steps {
-                container('python') {
-                    sh '''
-                    . venv/bin/activate
-                    python src/train_eth.py --output $MODEL_PATH_1
-                    python src/train_ethusdt.py --output $MODEL_PATH_2
-                    '''
-                }
-            }
-        }
-
-        stage('Avaliação dos Modelos') {
-            steps {
-                container('python') {
-                    sh '''
-                    . venv/bin/activate
-                    python src/evaluate.py --model $MODEL_PATH_1 --threshold 0.8
-                    python src/evaluate.py --model $MODEL_PATH_2 --threshold 0.8
+                    # Executa o script principal que faz o pré-processamento e treinamento
+                    python main.py
                     '''
                 }
             }
@@ -129,7 +105,12 @@ pipeline {
             script {
                 // Limpar workspace de forma segura com Kubernetes
                 try {
-                    sh 'rm -rf *'
+                    // Usa cleanWs() do Jenkins que é mais adequado para ambientes Kubernetes
+                    cleanWs(
+                        deleteDirs: true,
+                        disableDeferredWipeout: true,
+                        notFailBuild: true
+                    )
                 } catch (Exception e) {
                     echo "Erro ao limpar workspace: ${e.message}"
                 }
