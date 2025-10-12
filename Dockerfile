@@ -28,6 +28,9 @@ RUN python -c "import tomllib, subprocess, sys; \
 
 COPY . /app
 
+# Verificar se os models foram copiados
+RUN ls -la /app/models/ || echo "Pasta models não encontrada"
+
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 
 USER appuser

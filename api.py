@@ -40,6 +40,17 @@ config = Config()
 data_manager = CryptoDataManager(config)
 ml_model = CryptoMLModel(config.model_dir)
 
+# Log de debug para verificar paths
+logger.info(f"🔍 Diretório de trabalho: {os.getcwd()}")
+logger.info(f"📁 Diretório de models: {config.model_dir}")
+logger.info(f"📁 Caminho absoluto de models: {os.path.abspath(config.model_dir)}")
+if os.path.exists(config.model_dir):
+    logger.info(f"✅ Pasta models existe!")
+    models_found = os.listdir(config.model_dir)
+    logger.info(f"📦 Models encontrados: {models_found}")
+else:
+    logger.error(f"❌ Pasta models NÃO existe!")
+
 # Modelos Pydantic para validação
 class PredictionRequest(BaseModel):
     symbol: str = Field(default="ETHUSDT", description="Par de criptomoedas (ex: ETHUSDT, BTCUSDT)")
