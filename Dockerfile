@@ -26,10 +26,15 @@ RUN python -c "import tomllib, subprocess, sys; \
     reqs = [d.split(';')[0].strip() for d in deps]; \
     subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + reqs)"
 
-COPY . /app
+# Copiar código da aplicação
+COPY *.py /app/
+COPY data/ /app/data/
+
+# Copiar models EXPLICITAMENTE (importante!)
+COPY models/*.pkl /app/models/
 
 # Verificar se os models foram copiados
-RUN ls -la /app/models/ || echo "Pasta models não encontrada"
+RUN echo "📦 Verificando models copiados:" && ls -lah /app/models/
 
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 
