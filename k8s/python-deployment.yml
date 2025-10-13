@@ -49,12 +49,8 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
           volumeMounts:
-            - name: models
-              mountPath: /app/models
             - name: data
               mountPath: /app/data
       volumes:
-        - name: models
-          emptyDir: {}
         - name: data
           emptyDir: {}

@@ -1,0 +1,14 @@
+# Ignore tudo exceto o necessário para o build
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+venv/
+.venv/
+*.log
+
+# NÃO ignore os models - eles devem ser incluídos!
+!models/
+!models/*.pkl

@@ -77,28 +77,9 @@ pipeline {
             steps {
                 container('gcp-tools') {
                     sh '''
-                    # Garantir que os models treinados sejam incluídos no build context
-                    echo "📦 Verificando models antes do build:"
-                    ls -lah models/
-                    
-                    # Criar cloudbuild.yaml temporário para garantir que os models sejam incluídos
-                    cat > cloudbuild.yaml <<EOF
-steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'build'
-      - '-t'
-      - '$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER'
-      - '--no-cache'
-      - '.'
-images:
-  - '$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER'
-timeout: '1800s'
-EOF
-                    
                     set +e
                     gcloud builds submit \
-                      --config=cloudbuild.yaml \
+                      --tag=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
                       --project=$PROJECT_ID \
                       . 2>&1 | tee build_output.txt
                     

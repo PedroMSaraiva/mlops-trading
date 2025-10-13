@@ -10,6 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	build-essential \
 	gcc \
 	libpq-dev \
+	curl \
+	apt-transport-https \
+	ca-certificates \
+	gnupg \
+	&& echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
+	&& curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - \
+	&& apt-get update && apt-get install -y google-cloud-cli \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml /app/
@@ -26,15 +33,11 @@ RUN python -c "import tomllib, subprocess, sys; \
     reqs = [d.split(';')[0].strip() for d in deps]; \
     subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + reqs)"
 
-# Copiar código da aplicação
 COPY *.py /app/
 COPY data/ /app/data/
+COPY models/ /app/models/
 
-# Copiar models EXPLICITAMENTE (importante!)
-COPY models/*.pkl /app/models/
-
-# Verificar se os models foram copiados
-RUN echo "📦 Verificando models copiados:" && ls -lah /app/models/
+RUN echo "Models in container:" && ls -lah /app/models/
 
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 
