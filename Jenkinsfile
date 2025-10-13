@@ -77,6 +77,11 @@ pipeline {
             steps {
                 container('gcp-tools') {
                     sh '''
+                    echo "Verificando models antes do build:"
+                    ls -lah models/
+                    echo "Conteudo do workspace:"
+                    ls -lah
+                    
                     set +e
                     gcloud builds submit \
                       --tag=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
