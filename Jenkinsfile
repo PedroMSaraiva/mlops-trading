@@ -108,7 +108,16 @@ pipeline {
                       echo "Build concluído com sucesso!"
                       exit 0
                     else
-                      echo "Build falhou com status: $STATUS"
+                      echo " Build falhou com status: $STATUS"
+                      echo ""
+                      echo "========================================="
+                      echo " LOGS DO CLOUD BUILD:"
+                      echo "========================================="
+                      gcloud builds log $BUILD_ID --project=$PROJECT_ID 2>&1 || echo "  Não foi possível obter logs detalhados"
+                      echo "========================================="
+                      echo ""
+                      echo " Link para logs completos:"
+                      echo "https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
                       exit 1
                     fi
                     '''
@@ -122,7 +131,7 @@ pipeline {
                     sh '''
                     # Verificar se kubectl está disponível
                     if ! command -v kubectl &> /dev/null; then
-                        echo "❌ kubectl não encontrado. Instalando..."
+                        echo " kubectl não encontrado. Instalando..."
                         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                         chmod +x kubectl
                         sudo mv kubectl /usr/local/bin/ 2>/dev/null || mv kubectl /usr/bin/

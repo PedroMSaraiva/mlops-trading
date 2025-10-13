@@ -1,0 +1,66 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github/
+
+# CI/CD
+Jenkinsfile
+build_output.txt
+.gcloudignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Documentation
+docs/
+LICENSE
+.gitignore
+
+# Kubernetes manifests (não precisam estar no container)
+k8s/
+
+# Testes
+tests/
+*_test.py
+test_*.py
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+.cache/
+
+# IMPORTANTE: NÃO ignorar:
+# - *.py (código fonte)
+# - models/ (modelos treinados)
+# - data/ (datasets)
+# - pyproject.toml
+# - README.md
