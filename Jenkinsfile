@@ -87,7 +87,7 @@ pipeline {
                       --async \
                       . 2>&1 | tee build_output.txt
                     
-                    BUILD_ID=$(grep -oP "ID: \K[a-f0-9-]+" build_output.txt | head -1)
+                    BUILD_ID=$(grep "ID:" build_output.txt | head -1 | awk '{print $2}')
                     
                     if [ -z "$BUILD_ID" ]; then
                       BUILD_ID=$(gcloud builds list --limit=1 --format="value(id)" --project=$PROJECT_ID)
