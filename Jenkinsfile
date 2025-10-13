@@ -79,30 +79,21 @@ pipeline {
                     sh '''
                     echo "Verificando models antes do build:"
                     ls -lah models/
-                    echo "Conteudo do workspace:"
-                    ls -lah
                     
                     set +e
                     gcloud builds submit \
                       --tag=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER \
                       --project=$PROJECT_ID \
+                      --async \
                       . 2>&1 | tee build_output.txt
                     
-                    BUILD_ID=$(grep -i "ID:" build_output.txt | head -1 | sed 's/.*ID: *//i' | awk '{print $1}')
+                    BUILD_ID=$(grep -oP "ID: \K[a-f0-9-]+" build_output.txt | head -1)
                     
                     if [ -z "$BUILD_ID" ]; then
-                      echo "Não foi possível obter o Build ID, mas verificando imagem..."
-                      sleep 30
-                      if gcloud artifacts docker images describe $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:$BUILD_NUMBER --project=$PROJECT_ID 2>/dev/null; then
-                        echo "Imagem criada com sucesso!"
-                        exit 0
-                      else
-                        echo "Falha ao criar imagem"
-                        exit 1
-                      fi
+                      BUILD_ID=$(gcloud builds list --limit=1 --format="value(id)" --project=$PROJECT_ID)
                     fi
                     
-                    echo "Verificando status do build: $BUILD_ID"
+                    echo "Build ID: $BUILD_ID"
                     STATUS=$(gcloud builds describe $BUILD_ID --project=$PROJECT_ID --format="value(status)" 2>/dev/null || echo "UNKNOWN")
                     
                     while [ "$STATUS" = "WORKING" ] || [ "$STATUS" = "QUEUED" ]; do
