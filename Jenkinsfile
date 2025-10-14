@@ -9,7 +9,7 @@ pipeline {
 
     environment {
         PROJECT_ID = 'road-for-terraform'
-        REGION = 'us-east1'
+        REGION = 'southamerica-east1'
         REPO_NAME = 'mlops-repo'
         IMAGE_NAME = 'ml-inference'
         CLUSTER_NAME = 'dev-instance'
