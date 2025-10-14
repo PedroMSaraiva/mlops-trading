@@ -42,6 +42,13 @@ COPY *.py /app/
 COPY data/ /app/data/
 COPY models/ /app/models/
 
+RUN pip install uv
+
+COPY pyproject.toml /app/
+COPY uv.lock /app/
+RUN uv sync --frozen --no-dev
+
+
 RUN if [ ! -f /app/models/eth_price_predictor.pkl ] || [ ! -f /app/models/ethusdt_price_predictor.pkl ]; then \
     echo "ERRO: Modelos nao encontrados no container!"; \
     ls -lah /app/models/ || echo "Pasta models/ nao existe"; \
@@ -57,4 +64,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]

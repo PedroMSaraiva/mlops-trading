@@ -5,3 +5,9 @@
 2025-10-09 18:30:15 | INFO | main:fetch_klines:109 | Dados obtidos: 100 velas
 2025-10-09 18:30:15 | INFO | main:prepare_features:300 | Features preparadas: 50 amostras com 15 features
 2025-10-09 18:30:16 | INFO | api:predict_price:232 | Previsão realizada: 4345.62 -> 4356.09 (+0.24%)
+2025-10-13 18:38:37 | INFO | main:__init__:63 | Cliente Binance inicializado com sucesso
+2025-10-13 18:38:37 | INFO | api:<module>:44 | 🔍 Diretório de trabalho: C:\Users\guilh\Documents\mlops-trading
+2025-10-13 18:38:37 | INFO | api:<module>:45 | 📁 Diretório de models: models
+2025-10-13 18:38:37 | INFO | api:<module>:46 | 📁 Caminho absoluto de models: C:\Users\guilh\Documents\mlops-trading\models
+2025-10-13 18:38:37 | INFO | api:<module>:48 | ✅ Pasta models existe!
+2025-10-13 18:38:37 | INFO | api:<module>:50 | 📦 Models encontrados: ['ethusdt_price_predictor.pkl', 'eth_price_predictor.pkl']

@@ -66,3 +66,55 @@
 2025-10-09 18:34:13 | INFO | main:fetch_klines:109 | Dados obtidos: 100 velas
 2025-10-09 18:34:13 | INFO | main:prepare_features:300 | Features preparadas: 50 amostras com 15 features
 2025-10-09 18:34:13 | INFO | api:predict_price:232 | Previsão realizada: 4347.19 -> 4356.09 (+0.20%)
+2025-10-13 18:36:21 | INFO | __main__:main:467 | 💻 Ambiente de desenvolvimento - tentando conectar à API Binance
+2025-10-13 18:36:22 | INFO | __main__:__init__:63 | Cliente Binance inicializado com sucesso
+2025-10-13 18:36:22 | INFO | __main__:main:474 | Buscando dados de ETHUSDT...
+2025-10-13 18:36:22 | INFO | __main__:fetch_klines:107 | Buscando 100 velas de 30m para ETHUSDT
+2025-10-13 18:36:23 | INFO | __main__:fetch_klines:125 | Dados obtidos: 100 velas
+2025-10-13 18:36:23 | INFO | __main__:main:486 | Calculando indicadores técnicos...
+2025-10-13 18:36:23 | INFO | __main__:save_data:224 | Dados salvos em: data\eth_raw_data.csv
+2025-10-13 18:36:23 | INFO | __main__:save_data:224 | Dados salvos em: data\eth_with_indicators.csv
+2025-10-13 18:36:23 | INFO | __main__:main:495 | Preparando dados para machine learning...
+2025-10-13 18:36:23 | INFO | __main__:prepare_features:351 | Features preparadas: 50 amostras com 15 features
+2025-10-13 18:36:23 | INFO | __main__:train:366 | Iniciando treinamento do modelo...
+2025-10-13 18:36:23 | INFO | __main__:train:403 | Modelo treinado. R² teste: -11.8913
+2025-10-13 18:36:23 | INFO | __main__:main:506 | Métricas do modelo:
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   train_mse: 106.18678268676527
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   test_mse: 11709.154677328243
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   train_mae: 7.613342500000693
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   test_mae: 100.73028000000104
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   train_r2: 0.8873020314351986
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   test_r2: -11.891285620272262
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   train_size: 40
+2025-10-13 18:36:23 | INFO | __main__:main:508 |   test_size: 10
+2025-10-13 18:36:23 | INFO | __main__:save_model:430 | Modelo salvo em: models\eth_price_predictor.pkl
+2025-10-13 18:36:23 | INFO | __main__:main:517 | Previsão para próxima vela: 4120.55
+2025-10-13 18:36:23 | INFO | __main__:main:518 | Último preço real: 4265.39
+2025-10-13 18:36:23 | INFO | __main__:main:520 | Processo concluído!
+2025-10-13 18:39:50 | INFO | __main__:main:192 | === Sistema de Previsão de Preços de Criptomoedas ===
+2025-10-13 18:39:50 | INFO | __main__:main:195 | 
+1. Fazendo previsão atual...
+2025-10-13 18:39:51 | INFO | main:__init__:63 | Cliente Binance inicializado com sucesso
+2025-10-13 18:39:51 | INFO | main:load_model:448 | Modelo carregado de: models\eth_price_predictor.pkl
+2025-10-13 18:39:51 | INFO | __main__:predict_next_price:55 | Buscando dados recentes para ETHUSDT...
+2025-10-13 18:39:51 | INFO | main:fetch_klines:107 | Buscando 50 velas de 30m para ETHUSDT
+2025-10-13 18:39:51 | INFO | main:fetch_klines:125 | Dados obtidos: 50 velas
+2025-10-13 18:39:51 | INFO | main:prepare_features:351 | Features preparadas: 0 amostras com 15 features
+2025-10-13 18:39:51 | ERROR | __main__:predict_next_price:73 | Não há dados suficientes para fazer previsão
+2025-10-13 18:39:52 | INFO | __main__:main:219 | 
+2. Analisando acurácia histórica...
+2025-10-13 18:39:52 | INFO | main:__init__:63 | Cliente Binance inicializado com sucesso
+2025-10-13 18:39:52 | INFO | main:load_model:448 | Modelo carregado de: models\eth_price_predictor.pkl
+2025-10-13 18:39:52 | INFO | __main__:analyze_prediction_accuracy:122 | Analisando acurácia para 3 dias...
+2025-10-13 18:39:52 | INFO | main:fetch_klines:107 | Buscando 500 velas de 30m para ETHUSDT
+2025-10-13 18:39:52 | INFO | main:fetch_klines:125 | Dados obtidos: 500 velas
+2025-10-13 18:39:52 | INFO | main:prepare_features:351 | Features preparadas: 450 amostras com 15 features
+2025-10-13 18:39:53 | INFO | __main__:main:223 | Análise de Acurácia:
+2025-10-13 18:39:53 | INFO | __main__:main:224 |   Período: 3 dias
+2025-10-13 18:39:53 | INFO | __main__:main:225 |   Previsões analisadas: 20
+2025-10-13 18:39:53 | INFO | __main__:main:226 |   MAE: $373.46
+2025-10-13 18:39:53 | INFO | __main__:main:227 |   R² Score: -551.6930
+2025-10-13 18:39:53 | INFO | __main__:main:228 |   Acurácia de direção: 42.1%
+2025-10-13 18:39:53 | INFO | __main__:main:229 |   Erro médio percentual: 8.35%
+2025-10-13 18:39:53 | INFO | __main__:main:231 | 
+=== Análise Concluída ===

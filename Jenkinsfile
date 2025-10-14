@@ -43,6 +43,7 @@ pipeline {
                     . venv/bin/activate
                     pip install --upgrade pip
                     pip install -e .
+                    pip install uv
                     '''
                 }
             }
@@ -56,7 +57,7 @@ pipeline {
 
                     export CI=true
 
-                    python main.py
+                    uv run main.py
                     '''
                 }
             }
