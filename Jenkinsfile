@@ -202,5 +202,18 @@ pipeline {
                 }
             }
         }
+        success {
+        emailext(
+            subject: "Build Sucesso: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            to: 'dev.thauan.rodrigues@gmail.com',
+            body: "Pipeline executada com sucesso."
+        )
+    }
+    failure {
+        emailext(
+            subject: "Build Falhou: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            to: 'dev.thauan.rodrigues@gmail.com',
+            body: "Pipeline falhou na stage ${env.STAGE_NAME}."
+        )
     }
 }
