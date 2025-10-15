@@ -479,7 +479,7 @@ async def get_accuracy_analysis(
 
 @app.get("/metrics")
 async def send_log_to_loki(symbol="ETHUSDT", current_price=2500.0, predicted_price=2525.0):
-    loki_url = "http://34.95.187.129:3100/loki/api/v1/push"
+    loki_url = "http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/push"
     payload = {
         "streams": [
             {
