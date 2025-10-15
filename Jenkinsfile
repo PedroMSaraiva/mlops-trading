@@ -203,16 +203,16 @@ pipeline {
             }
         }
         success {
-        emailext(
+            emailext(
             subject: "Build Sucesso: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            to: 'dev.thauan.rodrigues@gmail.com',
+            to: 'guilhermefernandes060421@gmail.com',
             body: "Pipeline executada com sucesso."
         )
     }
-    failure {
-        emailext(
+        failure {
+            emailext(
             subject: "Build Falhou: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            to: 'dev.thauan.rodrigues@gmail.com',
+            to: 'guilhermefernandes060421@gmail.com',
             body: "Pipeline falhou na stage ${env.STAGE_NAME}."
             )
         }   
