@@ -11,6 +11,9 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+import requests
 from pydantic import BaseModel, Field
 from loguru import logger
 
@@ -34,6 +37,8 @@ logger.add(
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
     colorize=True
 )
+
+templates = Jinja2Templates(directory="templates")
 
 # Inicializar componentes globais
 config = Config()
@@ -73,8 +78,9 @@ class ModelInfo(BaseModel):
     name: str
     features: List[str]
     training_date: Optional[datetime]
-    metrics: Optional[Dict[str, float]]
+    metrics: dict
     status: str
+
 
 class MarketData(BaseModel):
     symbol: str
@@ -127,13 +133,6 @@ async def root():
                 <div class="endpoint">
                     <h3>📊 Previsão de Preços</h3>
                     <p><code>GET /predict</code> - Fazer previsão de preço</p>
-                    <p><code>GET /predict/{symbol}</code> - Previsão para símbolo específico</p>
-                </div>
-
-                <div class="endpoint">
-                    <h3>📈 Dados de Mercado</h3>
-                    <p><code>GET /market/{symbol}</code> - Dados de mercado com indicadores</p>
-                    <p><code>GET /indicators/{symbol}</code> - Apenas indicadores técnicos</p>
                 </div>
 
                 <div class="endpoint">
@@ -141,13 +140,6 @@ async def root():
                     <p><code>GET /model/info</code> - Informações do modelo treinado</p>
                     <p><code>POST /model/train</code> - Treinar novo modelo</p>
                 </div>
-
-                <div class="endpoint">
-                    <h3>📋 Análise</h3>
-                    <p><code>GET /analysis/accuracy</code> - Análise de acurácia histórica</p>
-                    <p><code>GET /analysis/backtest</code> - Backtest do modelo</p>
-                </div>
-
                 <p><a href="/docs">📖 Documentação completa da API</a></p>
             </div>
         </body>
@@ -158,6 +150,7 @@ async def root():
 async def health_check():
     """Verificar saúde da API"""
     return {"status": "healthy", "timestamp": datetime.now()}
+
 
 @app.get("/predict", response_model=PredictionResponse)
 async def predict_price(
@@ -249,105 +242,7 @@ async def predict_price(
     except Exception as e:
         logger.error(f"Erro na previsão: {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
-
-@app.get("/predict/{symbol}", response_model=PredictionResponse)
-async def predict_symbol(symbol: str):
-    """Previsão para símbolo específico usando parâmetros padrão"""
-    return await predict_price(symbol=symbol)
-
-@app.get("/market/{symbol}", response_model=List[MarketData])
-async def get_market_data(
-    symbol: str = "ETHUSDT",
-    interval: str = "30m",
-    limit: int = 100,
-    include_indicators: bool = True
-):
-    """Obter dados de mercado com indicadores técnicos"""
-    try:
-        # Mapear intervalos
-        interval_map = {
-            "1m": "1m", "5m": "5m", "15m": "15m", "30m": "30m",
-            "1h": "1h", "4h": "4h", "1d": "1d"
-        }
-
-        binance_interval = interval_map.get(interval.lower(), "30m")
-
-        # Buscar dados
-        df = data_manager.fetch_klines(
-            symbol=symbol,
-            interval=getattr(data_manager.client, f"KLINE_INTERVAL_{binance_interval.upper().replace('M', 'MINUTE')}"),
-            limit=limit
-        )
-
-        if df.empty:
-            raise HTTPException(status_code=404, detail="Dados não encontrados")
-
-        # Adicionar indicadores se solicitado
-        if include_indicators:
-            df = TechnicalIndicators.add_all_indicators(df)
-
-        # Converter para lista de dicionários
-        market_data = []
-        for _, row in df.iterrows():
-            indicators = {}
-            if include_indicators:
-                # Extrair apenas colunas de indicadores (que começam com SMA, EMA, RSI, BB)
-                indicator_cols = [col for col in df.columns if any(prefix in col for prefix in ['SMA_', 'EMA_', 'RSI', 'BB_'])]
-                indicators = row[indicator_cols].to_dict()
-
-            market_data.append(MarketData(
-                symbol=symbol,
-                timestamp=row['Open time'],
-                open=row['Open'],
-                high=row['High'],
-                low=row['Low'],
-                close=row['Close'],
-                volume=row['Volume'],
-                indicators=indicators
-            ))
-
-        return market_data
-
-    except Exception as e:
-        logger.error(f"Erro ao buscar dados de mercado: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
-
-@app.get("/indicators/{symbol}")
-async def get_indicators(symbol: str = "ETHUSDT", limit: int = 100):
-    """Obter apenas indicadores técnicos para um símbolo"""
-    try:
-        df = data_manager.fetch_klines(symbol=symbol, limit=limit)
-
-        if df.empty:
-            raise HTTPException(status_code=404, detail="Dados não encontrados")
-
-        df_with_indicators = TechnicalIndicators.add_all_indicators(df)
-
-        # Retornar apenas as últimas 10 velas com indicadores
-        recent_data = df_with_indicators.tail(10)
-
-        indicators_data = []
-        for _, row in recent_data.iterrows():
-            # Extrair indicadores
-            indicators = {}
-            indicator_cols = [col for col in df_with_indicators.columns
-                            if any(prefix in col for prefix in ['SMA_', 'EMA_', 'RSI', 'BB_'])]
-
-            for col in indicator_cols:
-                if pd.notna(row[col]):
-                    indicators[col] = float(row[col])
-
-            indicators_data.append({
-                "timestamp": row['Open time'].isoformat(),
-                "close_price": float(row['Close']),
-                "indicators": indicators
-            })
-
-        return {"symbol": symbol, "indicators": indicators_data}
-
-    except Exception as e:
-        logger.error(f"Erro ao buscar indicadores: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+    
 
 @app.get("/model/info", response_model=ModelInfo)
 async def get_model_info():
@@ -374,11 +269,19 @@ async def get_model_info():
         if os.path.exists(model_path):
             training_date = datetime.fromtimestamp(os.path.getctime(model_path))
 
+        # Importar função do predict.py
+        from predict import analyze_prediction_accuracy
+
+        analysis = analyze_prediction_accuracy("ETHUSDT", 7)
+
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Não foi possível realizar análise")
+
         return ModelInfo(
             name="eth_price_predictor",
             features=features,
             training_date=training_date,
-            metrics=None,  # Podemos adicionar métricas se salvarmos junto com o modelo
+            metrics=analysis,  # Podemos adicionar métricas se salvarmos junto com o modelo
             status="loaded"
         )
 
@@ -406,6 +309,7 @@ async def train_model(
     except Exception as e:
         logger.error(f"Erro ao iniciar treinamento: {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+
 
 async def _train_model_background(symbol: str, interval: str, limit: int):
     """Função em background para treinar o modelo"""
@@ -445,35 +349,18 @@ async def _train_model_background(symbol: str, interval: str, limit: int):
         metrics = ml_model.train(X, y)
 
         # Salvar modelo
-        ml_model.save_model(f"{symbol.lower()}_price_predictor")
+        ml_model.save_model(f"{symbol.lower()}_price_predictor_retrain")
 
         logger.info(f"Treinamento concluído para {symbol}. R²: {metrics.get('test_r2', 'N/A')}")
 
     except Exception as e:
         logger.error(f"Erro no treinamento em background: {e}")
 
-@app.get("/analysis/accuracy")
-async def get_accuracy_analysis(
-    symbol: str = "ETHUSDT",
-    days_back: int = 7
-):
-    """Análise de acurácia histórica do modelo"""
-    try:
-        # Importar função do predict.py
-        from predict import analyze_prediction_accuracy
+@app.get("/dashboard")
+async def dashboard(request: Request):
+    data = requests.get("http://localhost:8000/model/info").json()
+    return templates.TemplateResponse("model_info.html", {"request": request, "data": data})
 
-        analysis = analyze_prediction_accuracy(symbol, days_back)
-
-        if not analysis:
-            raise HTTPException(status_code=404, detail="Não foi possível realizar análise")
-
-        return analysis
-
-    except ImportError:
-        raise HTTPException(status_code=500, detail="Erro interno na análise")
-    except Exception as e:
-        logger.error(f"Erro na análise de acurácia: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
