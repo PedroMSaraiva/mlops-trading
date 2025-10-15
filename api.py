@@ -6,6 +6,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import json
+import time, json, requests
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
@@ -474,6 +475,28 @@ async def get_accuracy_analysis(
     except Exception as e:
         logger.error(f"Erro na análise de acurácia: {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+    
+
+@app.get("/metrics")
+async def send_log_to_loki(symbol="ETHUSDT", current_price=2500.0, predicted_price=2525.0):
+    loki_url = "http://34.95.187.129:3100/loki/api/v1/push"
+    payload = {
+        "streams": [
+            {
+                "stream": {"job": "crypto_ml_api", "symbol": symbol},
+                "values": [
+                    [str(int(time.time() * 1e9)), json.dumps({
+                        "current_price": current_price,
+                        "predicted_price": predicted_price
+                    })]
+                ]
+            }
+        ]
+    }
+    response = requests.post(loki_url, json=payload)
+    return {"status": response.status_code}
+
+
 
 if __name__ == "__main__":
     import uvicorn
