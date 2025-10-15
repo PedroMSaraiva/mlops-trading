@@ -231,7 +231,7 @@ async def periodic_metrics_logger():
         logger.warning("Task de métricas já está em execução")
         return
     
-    _metrics_task_running = False
+    _metrics_task_running = True
     logger.info("🚀 Iniciando envio periódico de logs para Loki (1 minuto)")
     
     log_types = ["info", "warning", "error", "predict"]
