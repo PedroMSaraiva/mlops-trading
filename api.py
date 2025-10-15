@@ -6,8 +6,11 @@ import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import json
-import time, json, requests
+import time
+import random
+import asyncio
 
+import requests
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -475,27 +478,262 @@ async def get_accuracy_analysis(
     except Exception as e:
         logger.error(f"Erro na análise de acurácia: {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
-    
 
-@app.get("/metrics")
-async def send_log_to_loki(symbol="ETHUSDT", current_price=2500.0, predicted_price=2525.0):
-    loki_url = "http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/push"
-    payload = {
-        "streams": [
-            {
-                "stream": {"job": "crypto_ml_api", "symbol": symbol},
-                "values": [
-                    [str(int(time.time() * 1e9)), json.dumps({
-                        "current_price": current_price,
-                        "predicted_price": predicted_price
-                    })]
+
+# ==================== SISTEMA DE LOGS PARA LOKI ====================
+
+class LokiLogger:
+    """Classe para enviar logs estruturados ao Loki"""
+    
+    LOKI_URL = "http://loki-stack.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+    
+    @staticmethod
+    def send_log(level: str, message: str, extra_data: Optional[Dict] = None) -> bool:
+        """
+        Envia um log ao Loki
+        
+        Args:
+            level: Nível do log (INFO, WARNING, ERROR)
+            message: Mensagem do log
+            extra_data: Dados adicionais em formato dict
+            
+        Returns:
+            bool: True se enviado com sucesso, False caso contrário
+        """
+        try:
+            timestamp_ns = str(int(time.time() * 1e9))
+            
+            # Preparar dados do log
+            log_data = {
+                "level": level,
+                "message": message,
+                "timestamp": datetime.now().isoformat(),
+            }
+            
+            # Adicionar dados extras se fornecidos
+            if extra_data:
+                log_data.update(extra_data)
+            
+            payload = {
+                "streams": [
+                    {
+                        "stream": {
+                            "job": "crypto_ml_api",
+                            "level": level.lower()
+                        },
+                        "values": [
+                            [timestamp_ns, json.dumps(log_data)]
+                        ]
+                    }
                 ]
             }
-        ]
-    }
-    response = requests.post(loki_url, json=payload)
-    return {"status": response.status_code}
+            
+            response = requests.post(
+                LokiLogger.LOKI_URL,
+                json=payload,
+                timeout=5
+            )
+            
+            return response.status_code == 204
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar log para Loki: {e}")
+            return False
 
+
+# Variável global para controlar o background task
+_metrics_task_running = False
+
+
+async def periodic_metrics_logger():
+    """
+    Task em background que envia logs aleatórios para o Loki a cada 1 minuto
+    Simula diferentes cenários: INFO, WARNING, ERROR e predições
+    """
+    global _metrics_task_running
+    
+    if _metrics_task_running:
+        logger.warning("Task de métricas já está em execução")
+        return
+    
+    _metrics_task_running = True
+    logger.info("🚀 Iniciando envio periódico de logs para Loki (1 minuto)")
+    
+    log_types = ["info", "warning", "error", "predict"]
+    symbols = ["ETHUSDT", "BTCUSDT", "BNBUSDT", "ADAUSDT"]
+    
+    try:
+        while _metrics_task_running:
+            # Escolher tipo de log aleatório
+            log_type = random.choice(log_types)
+            symbol = random.choice(symbols)
+            
+            if log_type == "info":
+                # Log de informação
+                messages = [
+                    f"Sistema de predição operacional para {symbol}",
+                    f"Análise de mercado concluída para {symbol}",
+                    f"Indicadores técnicos calculados para {symbol}",
+                    f"Conexão com Binance API estável - {symbol}",
+                    f"Cache de dados atualizado para {symbol}"
+                ]
+                message = random.choice(messages)
+                
+                LokiLogger.send_log(
+                    level="INFO",
+                    message=message,
+                    extra_data={
+                        "symbol": symbol,
+                        "operation": "system_check",
+                        "status": "ok"
+                    }
+                )
+                logger.info(f"📊 [LOKI] {message}")
+                
+            elif log_type == "warning":
+                # Log de aviso
+                messages = [
+                    f"Alta volatilidade detectada em {symbol}",
+                    f"Volume de negociação abaixo da média para {symbol}",
+                    f"Indicador RSI próximo de sobrecompra em {symbol}",
+                    f"Latência elevada na API Binance para {symbol}",
+                    f"Divergência entre indicadores detectada em {symbol}"
+                ]
+                message = random.choice(messages)
+                
+                LokiLogger.send_log(
+                    level="WARNING",
+                    message=message,
+                    extra_data={
+                        "symbol": symbol,
+                        "operation": "market_analysis",
+                        "severity": "medium"
+                    }
+                )
+                logger.warning(f"⚠️  [LOKI] {message}")
+                
+            elif log_type == "error":
+                # Log de erro
+                messages = [
+                    f"Falha ao conectar com Binance API para {symbol}",
+                    f"Timeout ao buscar dados de mercado de {symbol}",
+                    f"Erro ao calcular indicadores técnicos para {symbol}",
+                    f"Modelo de ML não encontrado para {symbol}",
+                    f"Dados insuficientes para predição de {symbol}"
+                ]
+                message = random.choice(messages)
+                
+                LokiLogger.send_log(
+                    level="ERROR",
+                    message=message,
+                    extra_data={
+                        "symbol": symbol,
+                        "operation": "data_fetch",
+                        "error_type": "api_error",
+                        "severity": "high"
+                    }
+                )
+                logger.error(f"❌ [LOKI] {message}")
+                
+            else:  # predict
+                # Log de predição
+                current_price = round(random.uniform(2000, 3000), 2)
+                predicted_price = round(current_price * random.uniform(0.98, 1.02), 2)
+                change_pct = round(((predicted_price - current_price) / current_price) * 100, 2)
+                confidence = round(random.uniform(0.7, 0.95), 2)
+                
+                message = f"Predição realizada para {symbol}: ${current_price:.2f} → ${predicted_price:.2f} ({change_pct:+.2f}%)"
+                
+                LokiLogger.send_log(
+                    level="INFO",
+                    message=message,
+                    extra_data={
+                        "symbol": symbol,
+                        "operation": "predict",
+                        "current_price": current_price,
+                        "predicted_price": predicted_price,
+                        "price_change_pct": change_pct,
+                        "confidence": confidence,
+                        "model": "ml_predictor_v1"
+                    }
+                )
+                logger.info(f"🤖 [LOKI] {message}")
+            
+            # Aguardar 1 minuto antes do próximo envio
+            await asyncio.sleep(60)
+            
+    except asyncio.CancelledError:
+        logger.info("Task de métricas cancelada")
+    except Exception as e:
+        logger.error(f"Erro na task periódica de logs: {e}")
+    finally:
+        _metrics_task_running = False
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Evento executado ao iniciar a aplicação"""
+    logger.info("🎯 API inicializada - Configurando tarefas em background")
+    # Iniciar task de envio periódico de logs
+    asyncio.create_task(periodic_metrics_logger())
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Evento executado ao desligar a aplicação"""
+    global _metrics_task_running
+    _metrics_task_running = False
+    logger.info("🛑 Aplicação encerrada - Tasks finalizadas")
+
+
+@app.get("/metrics")
+async def get_metrics_status():
+    """
+    Endpoint para verificar status do sistema de métricas
+    
+    Returns:
+        Status do envio de logs para Loki
+    """
+    return {
+        "status": "active" if _metrics_task_running else "inactive",
+        "loki_url": LokiLogger.LOKI_URL,
+        "interval": "60 seconds",
+        "log_types": ["INFO", "WARNING", "ERROR", "PREDICT"],
+        "description": "Logs são enviados automaticamente para o Loki a cada 1 minuto"
+    }
+
+
+@app.post("/metrics/manual")
+async def send_manual_log(
+    level: str = Query("INFO", description="Nível do log: INFO, WARNING ou ERROR"),
+    message: str = Query(..., description="Mensagem do log"),
+    symbol: str = Query("ETHUSDT", description="Símbolo da criptomoeda")
+):
+    """
+    Endpoint para envio manual de log ao Loki
+    
+    Args:
+        level: Nível do log (INFO, WARNING, ERROR)
+        message: Mensagem do log
+        symbol: Símbolo da crypto
+    """
+    if level.upper() not in ["INFO", "WARNING", "ERROR"]:
+        raise HTTPException(status_code=400, detail="Level deve ser INFO, WARNING ou ERROR")
+    
+    success = LokiLogger.send_log(
+        level=level.upper(),
+        message=message,
+        extra_data={"symbol": symbol, "source": "manual"}
+    )
+    
+    if success:
+        logger.info(f"Log manual enviado ao Loki: [{level}] {message}")
+        return {"status": "success", "message": "Log enviado ao Loki com sucesso"}
+    else:
+        raise HTTPException(status_code=500, detail="Erro ao enviar log para Loki")
+
+
+# ==================== FIM DO SISTEMA DE LOGS ====================
 
 
 if __name__ == "__main__":
