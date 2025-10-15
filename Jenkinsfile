@@ -214,6 +214,7 @@ pipeline {
             subject: "Build Falhou: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
             to: 'dev.thauan.rodrigues@gmail.com',
             body: "Pipeline falhou na stage ${env.STAGE_NAME}."
-        )
+            )
+        }   
     }
 }
